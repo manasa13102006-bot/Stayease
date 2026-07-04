@@ -1,24 +1,56 @@
 <%layout("/layouts/boilerplate")%>
-<div class="row mt-3">
-    <h1 class="col-6 offset-3">SignUp for WanderLust</h1>
+<div class="row mt-3 mb-5">
     <div class="col-6 offset-3">
+        <h1 class="mb-4">Join StayScape</h1>
+        
         <form action="/signup" method="POST" class="needs-validation" novalidate>
             <div class="mb-3">
-    <label for="username" class="form-label">Username</label><br/>
-    <input name="username" id="username" type="text" class="form-control" required />
-    <div class="invalid-feedback">please enter username</div>
-    </div>
-     <div class="mb-3">
-    <label for="email" class="form-label">Email</label><br/>
-    <input name="email" id="email" type="email" class="form-control" required />
-    <div class="invalid-feedback">please enter email</div>
-    </div>
-     <div class="mb-3">
-    <label for="password" class="form-label">Password</label><br/>
-    <input name="password" id="password" type="text" class="form-control" required />
-    <div class="invalid-feedback">please enter password</div>
-    </div>
-        <button class="btn btn-success">SignUp</button>
+                <label for="username" class="form-label">Username</label>
+                <input name="username" id="username" type="text" class="form-control" required />
+                <div class="invalid-feedback">Please enter a username</div>
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input name="email" id="email" type="email" class="form-control" required />
+                <div class="invalid-feedback">Please enter a valid email</div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="firstName" class="form-label">First Name</label>
+                    <input name="firstName" id="firstName" type="text" class="form-control" required />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="lastName" class="form-label">Last Name</label>
+                    <input name="lastName" id="lastName" type="text" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="contactNumber" class="form-label">Contact Number</label>
+                <input name="contactNumber" id="contactNumber" type="text" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label for="bio" class="form-label">Short Bio</label>
+                <textarea name="bio" id="bio" class="form-control" rows="2" placeholder="Tell us a little about yourself..."></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label for="role" class="form-label">I want to sign up as a:</label>
+                <select name="role" id="role" class="form-select" required>
+                    <option value="guest">Guest (Looking for places to stay)</option>
+                    <option value="host">Host (I want to list my property)</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">Password</label>
+                <input name="password" id="password" type="password" class="form-control" required />
+                <div class="invalid-feedback">Please enter a password</div>
+            </div>
+            
+            <button class="btn btn-success w-100">Sign Up</button>
         </form>
     </div>
 </div>

@@ -1,0 +1,42 @@
+<%layout("/layouts/boilerplate")%>
+<div class="row mt-5 mb-5">
+    <div class="col-md-8 offset-md-2">
+        
+        <div class="card shadow-sm border-0 rounded-4 p-4">
+            <h3 class="fw-bold mb-4">Edit Profile</h3>
+            
+            <form action="/profile?_method=PUT" method="POST" class="needs-validation" novalidate>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label text-muted fw-bold">First Name</label>
+                        <input name="firstName" id="firstName" type="text" class="form-control" value="<%= currUser.firstName || '' %>" required />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label text-muted fw-bold">Last Name</label>
+                        <input name="lastName" id="lastName" type="text" class="form-control" value="<%= currUser.lastName || '' %>" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="contactNumber" class="form-label text-muted fw-bold">Contact Number</label>
+                    <input name="contactNumber" id="contactNumber" type="text" class="form-control" value="<%= currUser.contactNumber || '' %>" />
+                </div>
+
+                <div class="mb-4">
+                    <label for="bio" class="form-label text-muted fw-bold">Short Bio</label>
+                    <textarea name="bio" id="bio" class="form-control" rows="4"><%= currUser.bio || '' %></textarea>
+                </div>
+                
+                <!-- Notice we DO NOT allow them to edit Email, Username, or Role here. 
+                     Changing auth credentials requires stricter security checks. -->
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <a href="/profile" class="text-decoration-none text-muted">Cancel</a>
+                    <button class="btn btn-dark rounded-pill px-5">Save Changes</button>
+                </div>
+            </form>
+        </div>
+        
+    </div>
+</div>

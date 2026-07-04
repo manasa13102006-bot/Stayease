@@ -3,6 +3,7 @@ const router=express.Router();
 const User=require("../models/user.js");
 const wrapAsync = require("../utils/wrapAsync.js");
 const passport=require("passport");
+const {isLoggedIn}=require("../middleware.js");
 const { saveRedirectUrl } = require("../middleware.js");
 const userController=require("../controllers/users.js");
 
@@ -17,4 +18,7 @@ router.route("/login")
     passport.authenticate("local",{failureRedirect:'/login',failureFlash:true}), 
     userController.login);
 router.get("/logout",userController.logout);
+router.get("/profile", isLoggedIn, userController.renderProfile);
+router.get("/profile/edit", isLoggedIn, userController.renderEditProfile);
+router.put("/profile", isLoggedIn, wrapAsync(userController.updateProfile));
 module.exports = router;
