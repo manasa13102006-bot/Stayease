@@ -1,0 +1,43 @@
+<%layout("/layouts/boilerplate")%>
+<div class="row">
+    <div class="col-8 offset-2">
+    <h3>CREATE A NEW LIST</h3>
+<form method="POST" action="/listings"  novalidate class="needs-validation" enctype="multipart/form-data">
+    <div class="mb-3">
+    <label for="tiltle" class="form-label">Title</label><br/>
+    <input name="listing[title]" placeholder="ADD cachy title" type="text" class="form-control" required />
+    <div class="invalid-feedback">please write title</div>
+    </div>
+    <div class="mb-3">
+    <label for="description" class="form-label">Description</label><br/>
+    <textarea name="listing[description]" placeholder="enter description" class="form-control" required></textarea>
+    <div class="invalid-feedback">please write a description</div>
+    </div>
+      
+     <div class="mb-3">
+    <label for="image" class="form-label">Upload Image</label><br/>
+    <input name="listing[image]" type="file" class="form-control" required/>
+    <div class="invalid-feedback">please enter image</div>
+    </div>
+    <div class="mb-3">
+    <label for="locatione" class="form-label">Location</label><br/>
+      <input name="listing[location]" placeholder="enter location" type="text" class="form-control" required/>
+    <div class="invalid-feedback">please enter location</div>
+      </div>
+      <div class="row">
+       <div class="mb-3 col-md-4">
+    <label for="price" class="form-label">Price</label><br/>
+    <input name="listing[price]" placeholder="1200" type="text" class="form-control" required/>
+    <div class="invalid-feedback">please enter price</div>
+    </div>
+    <div class="mb-3 col-md-8">
+    <label for="country" class="form-label">country</label><br/>
+    <input name="listing[country]" placeholder="India" type="text" class="form-control"required />
+    <div class="invalid-feedback">please enter country</div>
+    </div>
+      </div>
+    <button class="btn btn-dark add-btn">ADD</button>
+   <br/><br>
+</form>
+</div>
+</div>

@@ -1,0 +1,49 @@
+<%layout("/layouts/boilerplate")%>
+<div class="row mt-3" >
+<div class="col-8 offset-2">
+    <h2>EDIT YOUR LIST</h2>
+   <form method="POST" action="/listings/<%=listing._id %>?_method=PUT" novalidate class="needs-validation" enctype="multipart/form-data">
+    <div class="mb-3">
+    <label for="tiltle" class="form-label">Title</label><br/>
+   <input name="listing[title]" value="<%=listing.title%>" type="text" class="form-control" required/>
+    <div class="Invalid-feedback">Title looks good</div>
+    </div>
+
+     <div class="mb-3">
+    <label for="description" class="form-label">Description</label><br/>
+    <textarea name="listing[description]"value="<%=listing.description %>"type="text" class="form-control" required></textarea>
+    <div class="Invalid-feedback">please enter the description</div>
+    </div>
+     <div class="mb-3">
+    Original Listing Image <br/>
+    <img src="<%=originalImagUrl %>"/>
+    </div>
+     <div class="mb-3">
+    <label for="image" class="form-label">Upload New Image</label><br/>
+    <input name="listing[image]" type="file" class="form-control" />
+    </div>
+
+    
+    <div class="mb-3" >
+    <label for="locatione" class="form-label">Location</label><br/>
+    <input name="listing[location]" value="<%=listing.location%>" type="text" class="form-control" required/>
+    <div class="Invalid-feedback">please enter location</div>
+    </div>
+
+    <div class="row">
+    <div class="mb-3" class=" col-md-4">
+    <label for="price" class="form-label">price</label><br/>
+    <input name="listing[price]" value="<%=listing.price%>" type="text" class="form-control" required/>
+    <div class="Invalid-feedback">please enter price</div>
+    </div>
+
+    <div class="mb-3" class=" col-md-8">
+    <label for="country" class="form-label">Country</label><br/>
+    <input name="listing[country]" value="<%=listing.country%>" type="text" class="form-control" required/>
+    <div class="Invalid-feedback">Title looks good</div>
+    </div>
+</div>
+    <button class="btn btn-dark edit-btn mt-3">EDIT THIS</button>
+</form>
+</div>
+</div>
