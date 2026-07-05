@@ -1,4 +1,5 @@
 const User=require("../models/user");
+const Listing = require("../models/listing");
 module.exports. renderSignupForm=async(req,res)=>{
     res.render("users/signup.ejs");
 }
@@ -54,8 +55,12 @@ module.exports.logout=(req,res)=>{
       res.redirect("/listings");
    })
 }
-module.exports.renderProfile = (req, res) => {
-    res.render("users/profile.ejs");
+module.exports.renderProfile = async (req, res) => {
+    // Search the Listing collection for any documents where the 'owner' field matches the logged-in user's ID
+    const userListings = await Listing.find({ owner: req.user._id });
+    
+    // Pass those listings to the EJS template
+    res.render("users/profile.ejs", { userListings });
 };
 module.exports.renderEditProfile = async (req, res) => {
     // We already have the logged-in user's data inside req.user

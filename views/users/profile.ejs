@@ -51,10 +51,36 @@
             </div>
             
             <!-- Future Feature Placeholder: We will show the host's listings here later -->
-            <% if(currUser.role === 'host') { %>
+           <% if(currUser.role === 'host') { %>
                 <hr class="mb-4">
                 <h5 class="fw-bold mb-3">My Properties</h5>
-                <p class="text-muted">Your listings will appear here soon.</p>
+                
+                <% if(userListings && userListings.length > 0) { %>
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        <% for(let listing of userListings) { %>
+                            <div class="col">
+                                <a href="/listings/<%= listing._id %>" class="text-decoration-none">
+                                    <div class="card h-100 shadow-sm border-0 listing-card">
+                                        <img src="<%= listing.image.url %>" class="card-img-top rounded-4" alt="Property Image" style="height: 12rem; object-fit: cover;">
+                                        <div class="card-body p-2 mt-2">
+                                            <h6 class="card-title fw-bold text-dark mb-1"><%= listing.title %></h6>
+                                            <p class="card-text text-muted small mb-0"><%= listing.location %>, <%= listing.country %></p>
+                                            <p class="card-text text-dark fw-bold mt-1">&#8377;<%= listing.price.toLocaleString("en-IN") %></p>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        <% } %>
+                    </div>
+                <% } else { %>
+                    <div class="alert alert-light text-center border rounded-4 p-4 mt-3">
+                        <div class="mb-3">
+                            <i class="fa-solid fa-house-chimney-window text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="text-muted mb-3 fs-5">You haven't listed any properties yet.</p>
+                        <a href="/listings/new" class="btn btn-dark rounded-pill px-4">Airbnb your home</a>
+                    </div>
+                <% } %>
             <% } %>
         </div>
     </div>

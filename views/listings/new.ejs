@@ -24,17 +24,35 @@
       <input name="listing[location]" placeholder="enter location" type="text" class="form-control" required/>
     <div class="invalid-feedback">please enter location</div>
       </div>
-      <div class="row">
-       <div class="mb-3 col-md-4">
-    <label for="price" class="form-label">Price</label><br/>
-    <input name="listing[price]" placeholder="1200" type="text" class="form-control" required/>
-    <div class="invalid-feedback">please enter price</div>
-    </div>
-    <div class="mb-3 col-md-8">
-    <label for="country" class="form-label">country</label><br/>
-    <input name="listing[country]" placeholder="India" type="text" class="form-control"required />
-    <div class="invalid-feedback">please enter country</div>
-    </div>
+     <div class="row">
+          <div class="mb-3 col-md-4">
+              <label for="price" class="form-label">Price</label>
+              <input name="listing[price]" placeholder="1200" type="number" class="form-control" required/>
+              <div class="invalid-feedback">Please enter a valid price</div>
+          </div>
+          
+          <div class="mb-3 col-md-4">
+              <label for="country" class="form-label">Country</label>
+              <input name="listing[country]" placeholder="India" type="text" class="form-control" required />
+              <div class="invalid-feedback">Please enter a country</div>
+          </div>
+          
+          <div class="mb-3 col-md-4">
+              <label for="category" class="form-label">Category</label>
+              <select name="listing[category]" class="form-select" required>
+                  <option value="" disabled selected>Select category...</option>
+                  <option value="Trending">Trending</option>
+                  <option value="Rooms">Rooms</option>
+                  <option value="Iconic Cities">Iconic Cities</option>
+                  <option value="Mountains">Mountains</option>
+                  <option value="Castles">Castles</option>
+                  <option value="Amazing Pools">Amazing Pools</option>
+                  <option value="Camping">Camping</option>
+                  <option value="Farms">Farms</option>
+                  <option value="Arctic">Arctic</option>
+              </select>
+              <div class="invalid-feedback">Please select a category</div>
+          </div>
       </div>
     <button class="btn btn-dark add-btn">ADD</button>
    <br/><br>
