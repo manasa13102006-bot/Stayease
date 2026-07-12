@@ -5,21 +5,30 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+      
       <div class="navbar-nav">
         <a class="nav-link" href="/listings">Explore</a>
       </div>
+
+      <div class="navbar-nav ms-auto me-auto">
+        <form class="d-flex" role="search" action="/listings" method="GET">
+          <input class="form-control me-2 rounded-pill px-4" type="search" placeholder="Search destinations" aria-label="Search" name="search" style="width: 300px;">
+          <button class="btn btn-outline-danger rounded-pill" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </form>
+      </div>
+
       <div class="navbar-nav ms-auto">
         <a class="nav-link" href="/listings/new">Airbnb your home</a>
         <% if(!currUser) { %>
-        <a class="nav-link" href="/signup"><b>Sign up</b></a>
-        <a class="nav-link" href="/login"><b>Log in</b></a>
+          <a class="nav-link" href="/signup"><b>Sign up</b></a>
+          <a class="nav-link" href="/login"><b>Log in</b></a>
         <% } %>
         <% if(currUser) { %>
-        <a class="nav-link" href="/profile"><b>Profile</b></a>
-        <a class="nav-link" href="/logout"><b>Logout</b></a>
+          <a class="nav-link" href="/profile"><b>Profile</b></a>
+          <a class="nav-link" href="/logout"><b>Logout</b></a>
         <% } %>
-
       </div>
+      
     </div>
   </div>
-</nav>
+</nav> 

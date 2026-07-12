@@ -1,18 +1,29 @@
 const Listing = require("../models/listing");
 
 module.exports.index = async (req, res) => { 
-    console.log("BACKEND HIT: The full query object is:", req.query);
     const filterCategory = req.query.category;
-    //console.log("BACKEND HIT: The extracted category is:", filterCategory);
+    const searchQuery = req.query.search; // Extract the search term from the URL
+    
     let allListings;
+    
     if (filterCategory) {
-        console.log(`BACKEND HIT: Searching DB for category: ${filterCategory}`);
+        // If they clicked a category icon
         allListings = await Listing.find({ category: filterCategory });
+    } else if (searchQuery) {
+        // If they typed in the search bar
+        // $options: 'i' makes the search case-insensitive!
+        allListings = await Listing.find({
+            $or: [
+                { title: { $regex: searchQuery, $options: 'i' } },
+                { location: { $regex: searchQuery, $options: 'i' } },
+                { country: { $regex: searchQuery, $options: 'i' } }
+            ]
+        });
     } else {
-        console.log("BACKEND HIT: No category provided, fetching ALL listings.");
+        // If they just visited the homepage normally
         allListings = await Listing.find({});
     }
-    console.log(`BACKEND HIT: Sending ${allListings.length} listings to the UI.`);
+    
     res.render("listings/index.ejs", { allListings });
 };
 

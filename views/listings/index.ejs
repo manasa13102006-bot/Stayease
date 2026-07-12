@@ -95,22 +95,30 @@
         </div>
       </div>
      </div>
-     <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3" >
-        <% for(let listing of allListings ){%>
-          <!-- <div class="col"> -->
-         <a href="/listings/<%= listing._id %>" class="listing-link">
-         <div class="card col listing-card">
-        <img src="<%= listing.image.url%>" class="card-img-top" alt="listing image" style="height:20rem"/>
-        <div class="card-img-overlay"></div>
-         <div class="card-body">
-          <p class="card-text">
-            <br><%= listing.title %></b><br>
-            &#8377;<%=listing.price.toLocaleString("en-IN")%>
-          </p>
-          </div>
-        </div>
-      </a>
-        <!-- </div>  -->
-       <% } %>
-       </div>
+    <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 mt-3">
+        <% if(allListings.length === 0) { %>
+            <div class="col-12 text-center mt-5 mb-5 p-5 bg-light rounded-4 border">
+                <i class="fa-solid fa-magnifying-glass mb-3 text-muted" style="font-size: 3rem;"></i>
+                <h3 class="text-dark fw-bold">No exact matches found</h3>
+                <p class="text-muted fs-5">Try changing your search terms or clearing your filters.</p>
+                <a href="/listings" class="btn btn-dark rounded-pill mt-3 px-4 py-2">Clear Search</a>
+            </div>
+        <% } else { %>
+            <% for(let listing of allListings ){%>
+                <a href="/listings/<%= listing._id %>" class="listing-link">
+                    <div class="card col listing-card shadow-sm border-0 h-100">
+                        <img src="<%= listing.image.url%>" class="card-img-top rounded-4" alt="listing image" style="height:20rem; object-fit: cover;"/>
+                        <div class="card-img-overlay"></div>
+                        <div class="card-body p-2 mt-2">
+                            <p class="card-text">
+                                <span class="fw-bold text-dark"><%= listing.title %></span><br>
+                                <span class="text-muted small"><%= listing.category %> • <%= listing.location %></span><br>
+                                <span class="text-dark fw-bold">&#8377;<%=listing.price.toLocaleString("en-IN")%></span> / night
+                            </p>
+                        </div>
+                    </div>
+                </a>
+            <% } %>
+        <% } %>
+     </div>
 </body>
