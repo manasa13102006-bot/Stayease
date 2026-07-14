@@ -29,6 +29,41 @@
     </form>
     </div>
     <% } %>
+    <div class="col-8 offset-2 mb-4">
+        <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
+            <hr class="mb-4">
+            <h4 class="fw-bold mb-3">Book this place</h4>
+            <div class="card shadow-sm border-0 rounded-4 p-4">
+                <form action="/listings/<%= listing._id %>/bookings" method="POST" class="needs-validation" novalidate>
+                    <div class="row">
+                        <div class="mb-3 col-md-6">
+                            <label for="checkIn" class="form-label fw-bold">Check-in Date</label>
+                            <input type="date" id="checkIn" name="booking[checkIn]" class="form-control rounded-3" required>
+                            <div class="invalid-feedback">Please select a valid check-in date.</div>
+                        </div>
+                        
+                        <div class="mb-3 col-md-6">
+                            <label for="checkOut" class="form-label fw-bold">Check-out Date</label>
+                            <input type="date" id="checkOut" name="booking[checkOut]" class="form-control rounded-3" required>
+                            <div class="invalid-feedback">Please select a valid check-out date.</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-danger w-100 rounded-pill mt-3 py-2 fw-bold" style="background-color: #fc424d;">
+                        Reserve
+                    </button>
+                </form>
+            </div>
+            
+        <% } else if (!currUser) { %>
+            <hr class="mb-4">
+            <div class="alert alert-light border rounded-4 text-center p-4">
+                <h5 class="fw-bold">Want to book this place?</h5>
+                <p class="text-muted">You must be logged in to reserve dates.</p>
+                <a href="/login" class="btn btn-outline-dark rounded-pill px-4">Log in to Book</a>
+            </div>
+        <% } %>
+    </div>
     <!-- review -->
     <div class="col-8 offset-3 mb-3"><hr/>
      <% if(currUser) { %>
