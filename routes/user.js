@@ -21,4 +21,5 @@ router.get("/logout",userController.logout);
 router.get("/profile", isLoggedIn, userController.renderProfile);
 router.get("/profile/edit", isLoggedIn, userController.renderEditProfile);
 router.put("/profile", isLoggedIn, wrapAsync(userController.updateProfile));
+router.get("/trips", isLoggedIn, wrapAsync(userController.renderTrips));
 module.exports = router;

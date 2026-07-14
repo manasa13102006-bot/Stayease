@@ -17,6 +17,7 @@ const flash=require("connect-flash");
 const passport=require("passport");
 const LocalStrategy=require("passport-local");
 const User=require("./models/user.js");
+const bookingRouter = require("./routes/booking.js");
 main()
 .then(()=>{
     console.log("connected to database");
@@ -58,6 +59,7 @@ app.use((req,res,next)=>{
   next();
 });
 app.use("/listings",listingsRouter);
+app.use("/listings/:id/bookings", bookingRouter);
 app.use("/listings/:id/reviews",reviewsRouter);
 app.use("/",userRouter);
 

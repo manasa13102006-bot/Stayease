@@ -1,5 +1,6 @@
 const User=require("../models/user");
 const Listing = require("../models/listing");
+const Booking = require("../models/booking");
 module.exports. renderSignupForm=async(req,res)=>{
     res.render("users/signup.ejs");
 }
@@ -87,4 +88,12 @@ module.exports.updateProfile = async (req, res) => {
         req.flash("error", e.message);
         res.redirect("/profile/edit");
     }
+};
+// Add this new function at the bottom of the file
+module.exports.renderTrips = async (req, res) => {
+    
+    //KEY FOCUS .populate("listing")
+    const trips = await Booking.find({ guest: req.user._id }).populate("listing");
+    
+    res.render("users/trips.ejs", { trips });
 };
