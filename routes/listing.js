@@ -6,6 +6,7 @@ const {reviewSchema}=require("../schema.js");
 const {isLoggedIn}=require("../middleware.js");
 const {isOwner}=require("../middleware.js");
 const {validateListing}=require("../middleware.js");
+const {isHost}=require("../middleware.js");
 const listingController=require("../controllers/listings.js");
 const multer=require("multer");
 const {storage}=require("../cloudConfig.js");
@@ -17,15 +18,16 @@ router.route("/" )                                // common route
     next();
 },                                // CREATE ROUTE
     isLoggedIn,
+    isHost,
     upload.single("listing[image]"),
     validateListing,
     wrapAsync(listingController.createListing)
 );
 // NEW ROUTE
-router.get("/new",isLoggedIn ,wrapAsync(listingController.renderNewForm));
+router.get("/new",isLoggedIn, isHost,wrapAsync(listingController.renderNewForm));
 router.route("/:id")
 .get(wrapAsync(listingController.showListing))   // SHOW ROUTE
-.put(isLoggedIn,isOwner,
+.put(isLoggedIn,isHost,isOwner,
     upload.single("listing[image]"),
     validateListing,          // UPDATE ROUTE
     wrapAsync(listingController.updateListing))           
@@ -33,6 +35,6 @@ router.route("/:id")
     isLoggedIn,isOwner,wrapAsync(listingController.deleteListing));
 // EDIT ROUTE
 router.get("/:id/edit",
-    isLoggedIn,isOwner,
+    isLoggedIn,isHost,isOwner,
      wrapAsync(listingController.renderEditForm));
 module.exports=router;

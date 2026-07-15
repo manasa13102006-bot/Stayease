@@ -54,3 +54,16 @@ module.exports.isReviewAuthor=async(req,res,next)=>{
         }
     next();
 }
+// Add this function at the very bottom of your middleware.js file
+
+module.exports.isHost = (req, res, next) => {
+    // 🎯 KEY FOCUS 1: Role Verification Logic
+    // Check if a user is authenticated and if their role is strictly 'host'
+    if (req.user && req.user.role !== "host") {
+        req.flash("error", "Access Denied! You must register as a Host account to manage properties.");
+        return res.redirect("/listings");
+    }
+    
+    // If the check passes, pass control execution to the next function in line
+    next();
+};
