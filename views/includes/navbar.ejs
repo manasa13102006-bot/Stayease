@@ -23,8 +23,12 @@
           <a class="nav-link" href="/signup"><b>Sign up</b></a>
           <a class="nav-link" href="/login"><b>Log in</b></a>
         <% } %>
-        <% if(currUser) { %>
-          <a class="nav-link" href="/trips"><b>Trips</b></a>
+       <% if(currUser) { %>
+          <% if(currUser.role === 'host') { %>
+            <a class="nav-link" href="/reservations"><b>Reservations</b></a>
+          <% } else { %>
+            <a class="nav-link" href="/trips"><b>Trips</b></a>
+          <% } %>
           <a class="nav-link" href="/profile"><b>Profile</b></a>
           <a class="nav-link" href="/logout"><b>Logout</b></a>
         <% } %>

@@ -1,28 +1,44 @@
 const Booking = require("../models/booking");
 const Listing = require("../models/listing");
-
 module.exports.createBooking = async (req, res) => {
-    // 1. Find the specific listing being booked
     let { id } = req.params;
     const listing = await Listing.findById(id);
 
-    // 2. Extract the dates from the form
     const { checkIn, checkOut } = req.body.booking;
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
     
-    // 3. Security Guard: Prevent time travel (Checkout must be after Checkin)
-    if (checkOutDate <= checkInDate) {
-        req.flash("error", "Check-out date must be after check-in date.");
+    // 🎯 KEY FOCUS 1: Allow same-day by changing <= to <
+    if (checkOutDate < checkInDate) {
+        req.flash("error", "Check-out date cannot be before check-in date.");
         return res.redirect(`/listings/${id}`);
     }
 
-    // 4. Calculate total days and total price
+    // 🎯 KEY FOCUS 2: Use $lte and $gte so same-day overlaps are caught
+    const overlappingBookings = await Booking.find({
+        listing: listing._id,
+        status: { $ne: 'cancelled' }, 
+        $and: [
+            { checkIn: { $lte: checkOutDate } },
+            { checkOut: { $gte: checkInDate } }
+        ]
+    });
+
+    if (overlappingBookings.length > 0) {
+        req.flash("error", "Sorry, these dates are already booked! Please select different dates.");
+        return res.redirect(`/listings/${id}`);
+    }
+
+    // 🎯 KEY FOCUS 3: Handle Same-Day Pricing (Minimum 1 day)
     const diffTime = Math.abs(checkOutDate - checkInDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+    
+    if (diffDays === 0) {
+        diffDays = 1; // If check-in and check-out are the same day, charge for 1 day
+    }
+    
     const totalPrice = diffDays * listing.price;
 
-    // 5. Build the Booking document
     const newBooking = new Booking({
         listing: listing._id,
         guest: req.user._id,
@@ -31,7 +47,6 @@ module.exports.createBooking = async (req, res) => {
         totalPrice: totalPrice
     });
 
-    // 6. Save and redirect
     await newBooking.save();
     req.flash("success", "Booking request sent successfully!");
     res.redirect(`/listings/${id}`); 

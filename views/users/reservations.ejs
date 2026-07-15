@@ -1,0 +1,54 @@
+<%layout("/layouts/boilerplate")%>
+<div class="row mt-5 mb-5">
+    <div class="col-12">
+        <h2 class="fw-bold mb-4">Incoming Reservations</h2>
+        
+        <% if(reservations && reservations.length > 0) { %>
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+               <% for(let res of reservations) { %>
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0 listing-card">
+                            
+                            <img src="<%= res.listing.image.url %>" class="card-img-top rounded-4" alt="Property Image" style="height: 12rem; object-fit: cover;">
+                            
+                            <div class="card-body p-3">
+                                <span class="badge bg-success mb-2">Confirmed</span>
+                                
+                                <h5 class="fw-bold text-dark mb-1"><%= res.listing.title %></h5>
+                                <p class="text-muted small mb-3"><%= res.listing.location %></p>
+                                
+                                <div class="d-flex align-items-center mb-3 p-2 bg-light rounded-3">
+                                    <i class="fa-solid fa-circle-user fs-3 text-secondary me-3"></i>
+                                    <div>
+                                        <p class="mb-0 fw-bold">Guest: <%= res.guest.firstName || res.guest.username %></p>
+                                        <p class="mb-0 small text-muted"><%= res.guest.email %></p>
+                                    </div>
+                                </div>
+                                
+                                <p class="card-text mb-1 small">
+                                    <strong>In:</strong> <%= res.checkIn.toLocaleDateString() %>
+                                </p>
+                                <p class="card-text mb-3 small">
+                                    <strong>Out:</strong> <%= res.checkOut.toLocaleDateString() %>
+                                </p>
+                                
+                                <hr class="my-2">
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <span class="text-muted small">Your Payout</span>
+                                    <span class="fw-bold fs-5 text-dark">&#8377;<%= res.totalPrice.toLocaleString("en-IN") %></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div class="alert alert-light text-center border rounded-4 p-5 mt-3">
+                <i class="fa-regular fa-calendar-xmark text-muted mb-3" style="font-size: 3rem;"></i>
+                <h4 class="text-dark fw-bold">No reservations yet</h4>
+                <p class="text-muted fs-5">When guests book your properties, they will appear here.</p>
+            </div>
+        <% } %>
+    </div>
+</div>

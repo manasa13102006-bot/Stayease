@@ -97,3 +97,18 @@ module.exports.renderTrips = async (req, res) => {
     
     res.render("users/trips.ejs", { trips });
 };
+module.exports.renderReservations = async (req, res) => {
+    // 🎯 KEY FOCUS 1: Find all properties owned by this host
+    const myListings = await Listing.find({ owner: req.user._id });
+    
+    // Extract just the IDs of those listings into an array
+    const listingIds = myListings.map(listing => listing._id);
+    
+    // 🎯 KEY FOCUS 2: Find bookings where the listing ID is IN our array
+    // We also .populate("guest") so we can see the name of the person who booked it!
+    const reservations = await Booking.find({ listing: { $in: listingIds } })
+        .populate("listing")
+        .populate("guest");
+        
+    res.render("users/reservations.ejs", { reservations });
+};

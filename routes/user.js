@@ -22,4 +22,5 @@ router.get("/profile", isLoggedIn, userController.renderProfile);
 router.get("/profile/edit", isLoggedIn, userController.renderEditProfile);
 router.put("/profile", isLoggedIn, wrapAsync(userController.updateProfile));
 router.get("/trips", isLoggedIn, wrapAsync(userController.renderTrips));
+router.get("/reservations", isLoggedIn, wrapAsync(userController.renderReservations));
 module.exports = router;

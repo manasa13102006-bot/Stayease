@@ -1,4 +1,5 @@
 const Listing = require("../models/listing");
+const Booking = require("../models/booking");
 
 module.exports.index = async (req, res) => { 
     const filterCategory = req.query.category;
@@ -33,6 +34,7 @@ module.exports.renderNewForm = async (req, res) => {
 
 module.exports.showListing = async (req, res) => {
     let { id } = req.params;
+    
     const listing = await Listing.findById(id)
         .populate({
             path: "reviews",
@@ -45,8 +47,15 @@ module.exports.showListing = async (req, res) => {
         return res.redirect("/listings");
     }
 
+    // 🎯 KEY FOCUS 3: Fetch all active bookings for this specific listing
+    const existingBookings = await Booking.find({ 
+        listing: id,
+        status: { $ne: 'cancelled' }
+    });
+
     res.render("listings/show.ejs", {
         listing,
+        existingBookings, // Pass the bookings to the HTML
         MAPTILER_API_KEY: process.env.MAPTILER_API_KEY,
     });
 };
