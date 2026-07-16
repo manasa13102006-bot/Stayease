@@ -1,14 +1,16 @@
-console.log(window.maptilersdk);
-console.log(typeof maptilersdk);
-maptilersdk.config.apiKey = MAPTILER_API_KEY;
+maptilersdk.config.apiKey = mapToken;
 
 const map = new maptilersdk.Map({
     container: "map",
     style: maptilersdk.MapStyle.STREETS,
-    center: [LISTING.geometry.lng, LISTING.geometry.lat],
+    
+    // 🎯 KEY FOCUS 2: Changed LISTING to lowercase 'listing'
+    center: [listing.geometry.lng, listing.geometry.lat], 
     zoom: 14,
 });
 
-new maptilersdk.Marker()
-    .setLngLat([LISTING.geometry.lng, LISTING.geometry.lat])
+const marker = new maptilersdk.Marker({ color: "#fc424d" })
+    .setLngLat([listing.geometry.lng, listing.geometry.lat])
+    .setPopup(new maptilersdk.Popup({ offset: 25 })
+    .setHTML(`<h4>${listing.title}</h4><p>Exact location provided after booking.</p>`))
     .addTo(map);

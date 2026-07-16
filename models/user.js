@@ -27,7 +27,13 @@ const userSchema = new Schema({
     bio: {
         type: String,
         required: false,
-    }
+    },
+    wishlist: [
+        {
+            type: Schema.Types.ObjectId,
+            ref: "Listing",
+        }
+    ]
 });
 
 userSchema.plugin(passportLocalMongoose);

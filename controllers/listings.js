@@ -32,30 +32,46 @@ module.exports.renderNewForm = async (req, res) => {
      res.render("listings/new.ejs");
 };
 
+// Ensure this is at the top of your file: const Booking = require("../models/booking");
+
 module.exports.showListing = async (req, res) => {
     let { id } = req.params;
     
     const listing = await Listing.findById(id)
-        .populate({
-            path: "reviews",
-            populate: { path: "author" },
-        })
+        .populate({ path: "reviews", populate: { path: "author" } })
         .populate("owner");
         
     if (!listing) {
-        req.flash("error", "listing does not exist");
+        req.flash("error", "Listing does not exist");
         return res.redirect("/listings");
     }
 
-    // 🎯 KEY FOCUS 3: Fetch all active bookings for this specific listing
     const existingBookings = await Booking.find({ 
         listing: id,
         status: { $ne: 'cancelled' }
     });
 
+    // 🎯 KEY FOCUS 1: The Review Eligibility Check
+    let hasCompletedTrip = false;
+    
+    if (req.user) {
+        // Look for a booking by this user for this listing where the checkout is in the past
+        const pastBooking = await Booking.findOne({
+            listing: id,
+            guest: req.user._id,
+            checkOut: { $lt: new Date() }, //$lt means "Less Than" (older than right now)
+            status: { $ne: 'cancelled' }
+        });
+        
+        if (pastBooking) {
+            hasCompletedTrip = true;
+        }
+    }
+
     res.render("listings/show.ejs", {
         listing,
-        existingBookings, // Pass the bookings to the HTML
+        existingBookings,
+        hasCompletedTrip, // 🎯 KEY FOCUS 2: Pass this flag to the frontend
         MAPTILER_API_KEY: process.env.MAPTILER_API_KEY,
     });
 };

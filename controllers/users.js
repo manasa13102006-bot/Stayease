@@ -112,3 +112,28 @@ module.exports.renderReservations = async (req, res) => {
         
     res.render("users/reservations.ejs", { reservations });
 };
+// 🎯 KEY FOCUS 2: The Toggle Like Logic
+module.exports.toggleLike = async (req, res) => {
+    const { id } = req.params; // The listing ID
+    if(!req.user) {
+        // Queue up the server-side flash message for the subsequent page load
+        req.flash("error", "You must be logged in to manage your wishlist!");
+        // Return a JSON response telling the frontend exactly where to go
+        return res.json({ redirect: "/login" });
+    }
+    const user = await User.findById(req.user._id);
+    
+    // Check if the listing is already in the user's wishlist
+    const isLiked = user.wishlist.includes(id);
+    if (isLiked) {
+        // If already liked, remove it (Unlike)
+        user.wishlist.pull(id);
+        await user.save();
+        res.json({ liked: false }); // Send JSON response back to the browser
+    } else {
+        // If not liked, add it (Like)
+        user.wishlist.push(id);
+        await user.save();
+        res.json({ liked: true });
+    }
+};

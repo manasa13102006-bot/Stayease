@@ -23,4 +23,6 @@ router.get("/profile/edit", isLoggedIn, userController.renderEditProfile);
 router.put("/profile", isLoggedIn, wrapAsync(userController.updateProfile));
 router.get("/trips", isLoggedIn, wrapAsync(userController.renderTrips));
 router.get("/reservations", isLoggedIn, wrapAsync(userController.renderReservations));
+// Route to handle the asynchronous heart click
+router.post("/wishlist/:id", wrapAsync(userController.toggleLike));// Route to handle the asynchronous heart click
 module.exports = router;

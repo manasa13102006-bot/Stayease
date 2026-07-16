@@ -1,164 +1,205 @@
-<% layout("/layouts/boilerplate") %>
-    <div class="row-mt-3">
-        <div class="col-8 offset-3">
-    <h3><%=listing.title%></h3>
- </div>
-    <div class="card col-6 offset-3 show-card listing-card">
-     <img src="<%= listing.image.url%>" class="card-img-top show-img" alt="listing img"/>
-    <div class="card-body">
-    <p class="card-text">
-        <i>Owned By<%= listing.owner.username %></i>  </p>
-          <p class="card-text"> <%= listing.description%> </p>
-        <p class="card-text"> &#8377;<%= listing.price.toLocaleString("en-IN") %> </p>
-          <p class="card-text"> <%= listing.location %></p>
-           <p class="card-text"><%= listing.country %> </p>
-           <div class="mt-4">
-    <h4>Location</h4>
-    <div
-        id="map"
-        style="height:400px; width:100%; border-radius:10px;">
-    </div>
-</div>
-    </div>
-     </div>
-     <!-- BUTTON -->
-    <% if(currUser && listing.owner._id.equals(currUser.id)) {  %> 
-    <div class="btns"><a href="/listings/<%= listing._id%>/edit" class="btn btn-dark col-1 offset-3 edit-btn">EDIT</a>
-    <form method="POST" action="/listings/<%=listing._id %>?_method=DELETE">
-        <button class="btn btn-dark offset-5">DELETE</button>
-    </form>
-    </div>
-    <% } %>
-    <div class="col-8 offset-2 mb-4">
+<%layout("/layouts/boilerplate")%>
+<div class="row mt-4 mb-5">
+    <div class="col-lg-7 pe-lg-5">
+        
+       <div class="position-relative mb-4">
+            <img src="<%= listing.image.url %>" class="img-fluid rounded-4 w-100 shadow-sm" style="height: 450px; object-fit: cover;" alt="property image">
+            
+            <% const isLiked = currUser && currUser.wishlist && currUser.wishlist.some(id => id.equals(listing._id)) %>
+            
+           <button onclick="toggleHeart(event, '<%= listing._id %>')" class="btn position-absolute top-0 end-0 m-3 p-2 bg-white rounded-circle shadow" style="width: 40px; height: 40px; z-index: 10;">
+    <i id="heart-<%= listing._id %>" class="<%= (currUser && currUser.wishlist && currUser.wishlist.some(id => id.toString() === listing._id.toString())) ? 'fa-solid text-danger' : 'fa-regular text-dark' %> fa-heart fs-5"></i>
+</button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 class="fw-bold mb-0"><%= listing.title %></h2>
+        </div>
+        <p class="text-muted fs-5"><%= listing.location %>, <%= listing.country %></p>
+        
+        <hr class="my-4">
+
+        <div class="d-flex align-items-center mb-4">
+            <i class="fa-solid fa-circle-user fs-1 text-secondary me-3"></i>
+            <div>
+                <h5 class="mb-0 fw-bold">Hosted by <%= listing.owner.firstName || listing.owner.username %></h5>
+                <p class="mb-0 text-muted small">Superhost</p>
+            </div>
+        </div>
+
+        <p class="mb-4" style="line-height: 1.8;"><%= listing.description %></p>
+
+        <% if(currUser && listing.owner._id.equals(currUser._id)) { %>
+            <div class="d-flex gap-3 mb-4">
+                <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark px-4 rounded-pill">Edit Details</a>
+                <form method="POST" action="/listings/<%=listing._id%>?_method=DELETE">
+                    <button class="btn btn-outline-danger px-4 rounded-pill">Delete Property</button>
+                </form>
+            </div>
+        <% } %>
+
+        <hr class="my-4">
+
         <% if(currUser && !currUser._id.equals(listing.owner._id)) { %>
-            <hr class="mb-4">
             <h4 class="fw-bold mb-3">Book this place</h4>
-            <div class="card shadow-sm border-0 rounded-4 p-4">
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-light">
                 <form action="/listings/<%= listing._id %>/bookings" method="POST" class="needs-validation" novalidate>
                     <div class="row">
                         <div class="mb-3 col-md-6">
-                            <label for="checkIn" class="form-label fw-bold">Check-in Date</label>
-                            <input type="text" id="checkIn" name="booking[checkIn]" class="form-control rounded-3" required>
-                            <div class="invalid-feedback">Please select a valid check-in date.</div>
+                            <label class="form-label fw-bold">Check-in</label>
+                            <input type="text" id="checkIn" name="booking[checkIn]" class="form-control bg-white" placeholder="Select Date" required>
                         </div>
-                        
                         <div class="mb-3 col-md-6">
-                            <label for="checkOut" class="form-label fw-bold">Check-out Date</label>
-                            <input type="text" id="checkOut" name="booking[checkOut]" class="form-control rounded-3" required>
-                            <div class="invalid-feedback">Please select a valid check-out date.</div>
+                            <label class="form-label fw-bold">Check-out</label>
+                            <input type="text" id="checkOut" name="booking[checkOut]" class="form-control bg-white" placeholder="Select Date" required>
                         </div>
                     </div>
-                    
-                    <button class="btn btn-danger w-100 rounded-pill mt-3 py-2 fw-bold" style="background-color: #fc424d;">
-                        Reserve
-                    </button>
+                    <button class="btn btn-danger w-100 rounded-pill py-2 fw-bold" style="background-color: #fc424d;">Reserve</button>
                 </form>
             </div>
-            
         <% } else if (!currUser) { %>
-            <hr class="mb-4">
-            <div class="alert alert-light border rounded-4 text-center p-4">
+            <div class="alert alert-light border rounded-4 text-center p-4 mb-4">
                 <h5 class="fw-bold">Want to book this place?</h5>
-                <p class="text-muted">You must be logged in to reserve dates.</p>
-                <a href="/login" class="btn btn-outline-dark rounded-pill px-4">Log in to Book</a>
+                <a href="/login" class="btn btn-outline-dark rounded-pill px-4 mt-2">Log in to Book</a>
             </div>
         <% } %>
-    </div>
-    <!-- review -->
-    <div class="col-8 offset-3 mb-3"><hr/>
-     <% if(currUser) { %>
-        <h4>Leave the review</h4>
-        <form action="/listings/<%= listing._id%>/reviews" method="POST" novalidate class="needs-validation">
-    <!-- <div class="mb-3 mt-3" >
-        <label for="rating" class="form-label">rating</label>
-        <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range"/>
-    </div> -->
-    <div class="mb-3 mt-3" >
-    <label for="rating" class="form-label">rating</label>
-  <fieldset class="starability-slot">
-  <input type="radio" id="no-rate" class="input-no-rate" name="review[rating]" value="1 " checked aria-label="No rating." />
-  <input type="radio" id="first-rate1" name="review[rating]" value="1" />
-  <label for="first-rate1" title="Terrible">1 star</label>
-  <input type="radio" id="first-rate2" name="review[rating]" value="2" />
-  <label for="first-rate2" title="Not good">2 stars</label>
-  <input type="radio" id="first-rate3" name="review[rating]" value="3" />
-  <label for="first-rate3" title="Average">3 stars</label>
-  <input type="radio" id="first-rate4" name="review[rating]" value="4" />
-  <label for="first-rate4" title="Very good">4 stars</label>
-  <input type="radio" id="first-rate5" name="review[rating]" value="5" />
-  <label for="first-rate5" title="Amazing">5 stars</label>
-  </fieldset>
-  </div>
-        <div class="mb-3 mt-3" >
-        <label for="comment" class="form-label">comments</label>
-        <textarea name="review[comment]" id="comment" cols="30" rows="3"class="form-control" required></textarea>
-        <div class="invalid-feedback">please write comment</div>
-     </div>
-   <button class="btn btn-outline-dark">submit</button>
-</form>
-    <% } %>
-<p>All reviews</p>
-<div class="row">
-    <%for( review of listing.reviews){ %>
-        <div class="card col-5 ms-3 mb-3">
-       <h5 class="card-title">@<%= review.author.username %></h5>
-       <p class="starability-result card-text" data-rating=<%=review.rating%>></p>
-       <p class="card-text"><%=review.comment%></p>
-        <form class="mb-3"action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE" method="POST">
-        <button class="btn btn-sm btn btn-dark">Delete</button>
-        </form>
+
+        <hr class="my-4">
+        <hr class="my-4">
+        
+        <style>
+            .star-rating { direction: rtl; display: inline-flex; }
+            .star-rating input { display: none; }
+            .star-rating label { color: #ddd; font-size: 1.5rem; padding: 0 2px; cursor: pointer; transition: color 0.2s; }
+            .star-rating input:checked ~ label,
+            .star-rating input:hover ~ label,
+            .star-rating label:hover ~ label { color: #ffc107; /* Warning Yellow */ }
+        </style>
+
+        <% if(hasCompletedTrip) { %>
+            <div class="card shadow-sm border-0 rounded-4 p-4 mb-4 bg-light">
+                <h5 class="fw-bold mb-3">Leave a Review</h5>
+                <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold d-block mb-1">Rating</label>
+                        <div class="star-rating">
+                            <input type="radio" id="star5" name="review[rating]" value="5" /><label for="star5" class="fa-solid fa-star"></label>
+                            <input type="radio" id="star4" name="review[rating]" value="4" /><label for="star4" class="fa-solid fa-star"></label>
+                            <input type="radio" id="star3" name="review[rating]" value="3" checked /><label for="star3" class="fa-solid fa-star"></label>
+                            <input type="radio" id="star2" name="review[rating]" value="2" /><label for="star2" class="fa-solid fa-star"></label>
+                            <input type="radio" id="star1" name="review[rating]" value="1" /><label for="star1" class="fa-solid fa-star"></label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="comment" class="form-label fw-bold">Share your experience</label>
+                        <textarea name="review[comment]" id="comment" cols="30" rows="3" class="form-control rounded-3" placeholder="How was your stay? What did you love?" required></textarea>
+                        <div class="invalid-feedback">Please write a brief comment to submit.</div>
+                    </div>
+                    
+                    <button class="btn btn-dark rounded-pill px-4">Submit Review</button>
+                </form>
+            </div>
+        <% } %>
+
+       <% if(listing.reviews.length > 0) { %>
+            <div class="row row-cols-1 row-cols-md-2 g-3">
+                <% for(let review of listing.reviews) { %>
+                    <div class="col">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 h-100 bg-white">
+                            
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fa-solid fa-circle-user text-secondary fs-3 me-2"></i>
+                                <div>
+                                    <h6 class="fw-bold mb-0 text-dark"><%= review.author.firstName || review.author.username %></h6>
+                                    <small class="text-muted" style="font-size: 0.75rem;">
+                                        Reviewed on <%= new Date(review.createdAt).toLocaleDateString("en-IN", { year: 'numeric', month: 'long', day: 'numeric' }) %>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <p class="text-warning small mb-2">
+                                <% for(let i=1; i<=5; i++) { %>
+                                    <i class="<%= i <= review.rating ? 'fa-solid' : 'fa-regular' %> fa-star" style="font-size: 0.85rem;"></i>
+                                <% } %>
+                            </p>
+                            <p class="mb-0 text-muted small" style="line-height: 1.5;"><%= review.comment %></p>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+        <% } else { %>
+            <div class="p-3 bg-light rounded-3 text-center">
+                <p class="text-muted mb-0">No reviews yet.</p>
+            </div>
+        <% } %>
         </div>
-       
-        <% }  %>
+
+    <div class="col-lg-5 d-none d-lg-block">
+        <div class="position-sticky" style="top: 100px; height: calc(100vh - 120px);">
+            <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                <div id="map" class="w-100 h-100"></div>
+            </div>
+        </div>
+    </div>
+
 </div>
-      </div>
-     </div>
 
- <script>
-    const MAPTILER_API_KEY = "<%= MAPTILER_API_KEY %>";
-
-    const LISTING = {
-        title: "<%= listing.title %>",
-        geometry: {
-            lat: <%= listing.geometry.lat %>,
-            lng: <%= listing.geometry.lng %>
-        }
-    };
+<script>
+    const mapToken = "<%= MAPTILER_API_KEY %>"; 
+    const listing = <%- JSON.stringify(listing) %>;
 </script>
 
 <script src="/js/display_map.js"></script>
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    // Your existing Flatpickr initialization code goes here!
+    const existingBookings = <%- JSON.stringify(typeof existingBookings !== 'undefined' ? existingBookings : []) %>;
+    const disabledDateRanges = existingBookings.map(booking => {
+        return { from: booking.checkIn.split('T')[0], to: booking.checkOut.split('T')[0] };
+    });
+    const checkInPicker = flatpickr("#checkIn", { minDate: "today", disable: disabledDateRanges, dateFormat: "Y-m-d", onChange: function(selectedDates) { if (selectedDates.length > 0) { let minCheckout = new Date(selectedDates[0]); checkOutPicker.set("minDate", minCheckout); } } });
+    const checkOutPicker = flatpickr("#checkOut", { minDate: "today", disable: disabledDateRanges, dateFormat: "Y-m-d" });
+</script>
 
 <script>
-        const existingBookings = <%- JSON.stringify(existingBookings || []) %>;
+    async function toggleHeart(event, listingId) {
+        event.preventDefault(); 
         
-        const disabledDateRanges = existingBookings.map(booking => {
-            return {
-                from: booking.checkIn.split('T')[0],
-                to: booking.checkOut.split('T')[0]
-            };
-        });
-
-        // Initialize Check-In Calendar
-        const checkInPicker = flatpickr("#checkIn", {
-            minDate: "today", 
-            disable: disabledDateRanges,
-            dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr, instance) {
-                // 🎯 KEY FOCUS 4: Allow checkout on the exact same day
-                if (selectedDates.length > 0) {
-                    let minCheckout = new Date(selectedDates[0]);
-                    // We removed the +1 day logic here!
-                    checkOutPicker.set("minDate", minCheckout);
-                }
+        try {
+            const response = await fetch(`/wishlist/${listingId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await response.json();
+            
+            // 🎯 KEY FOCUS 3: Handling the Server-Side Redirect Signal
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
             }
-        });
-
-        // Initialize Check-Out Calendar
-        const checkOutPicker = flatpickr("#checkOut", {
-            minDate: "today", // 🎯 KEY FOCUS 5: Changed from tomorrow to today
-            disable: disabledDateRanges,
-            dateFormat: "Y-m-d",
-        });
-    </script>
+            
+            const heartIcon = document.getElementById(`heart-${listingId}`);
+            if (data.liked) {
+                heartIcon.classList.remove('fa-regular', 'text-dark');
+                heartIcon.classList.add('fa-solid', 'text-danger');
+            } else {
+                heartIcon.classList.remove('fa-solid', 'text-danger');
+                heartIcon.classList.add('fa-regular', 'text-dark');
+            }
+        } catch (err) {
+            console.error("Error toggling wishlist:", err);
+        }
+    }
+</script>
+<script>
+    // 🎯 KEY FOCUS 7: Redirect logged-out users to login page
+    function requireLogin(event) {
+        if(event) event.preventDefault(); // Stop the link from opening the listing
+        window.location.href = "/login";
+    }
+</script>

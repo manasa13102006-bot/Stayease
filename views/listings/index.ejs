@@ -97,10 +97,17 @@
                 <a href="/listings" class="btn btn-dark rounded-pill mt-3 px-4 py-2">Clear Search</a>
             </div>
         <% } else { %>
-            <% for(let listing of allListings ){%>
+         <% for(let listing of allListings ){%>
                 <a href="/listings/<%= listing._id %>" class="listing-link">
-                    <div class="card col listing-card shadow-sm border-0 h-100">
+                    <div class="card col listing-card shadow-sm border-0 h-100 position-relative">
                         <img src="<%= listing.image.url%>" class="card-img-top rounded-4" alt="listing image" style="height:20rem; object-fit: cover;"/>
+                        
+                        <% const isLiked = currUser && currUser.wishlist && currUser.wishlist.some(id => id.toString() === listing._id.toString()) %>
+                        
+                      <button onclick="toggleHeart(event, '<%= listing._id %>')" class="btn position-absolute top-0 end-0 m-3 p-2 bg-white rounded-circle shadow" style="width: 40px; height: 40px; z-index: 10;">
+    <i id="heart-<%= listing._id %>" class="<%= (currUser && currUser.wishlist && currUser.wishlist.some(id => id.toString() === listing._id.toString())) ? 'fa-solid text-danger' : 'fa-regular text-dark' %> fa-heart fs-5"></i>
+</button>
+
                         <div class="card-img-overlay"></div>
                         <div class="card-body p-2 mt-2">
                             <p class="card-text">
@@ -114,4 +121,42 @@
             <% } %>
         <% } %>
      </div>
+<script>
+    async function toggleHeart(event, listingId) {
+        event.preventDefault(); 
+        
+        try {
+            const response = await fetch(`/wishlist/${listingId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            const data = await response.json();
+            
+            // 🎯 KEY FOCUS 3: Handling the Server-Side Redirect Signal
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            
+            const heartIcon = document.getElementById(`heart-${listingId}`);
+            if (data.liked) {
+                heartIcon.classList.remove('fa-regular', 'text-dark');
+                heartIcon.classList.add('fa-solid', 'text-danger');
+            } else {
+                heartIcon.classList.remove('fa-solid', 'text-danger');
+                heartIcon.classList.add('fa-regular', 'text-dark');
+            }
+        } catch (err) {
+            console.error("Error toggling wishlist:", err);
+        }
+    }
+</script>
+<script>
+    // 🎯 KEY FOCUS 7: Redirect logged-out users to login page
+    function requireLogin(event) {
+        if(event) event.preventDefault(); // Stop the link from opening the listing
+        window.location.href = "/login";
+    }
+</script>
 </body>
