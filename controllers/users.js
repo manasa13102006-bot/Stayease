@@ -1,42 +1,66 @@
-const User=require("../models/user");
+const User = require("../models/user");
+const OTP = require("../models/otp"); // 🎯 NEW
+const emailUtil = require("../utils/email"); // 🎯 NEW
 const Listing = require("../models/listing");
 const Booking = require("../models/booking");
 module.exports. renderSignupForm=async(req,res)=>{
     res.render("users/signup.ejs");
 }
-module.exports.signup = async(req, res, next) => {
-  try {
-    // 1. Extract ALL fields from the submitted form
-    let { username, email, password, firstName, lastName, contactNumber, bio, role } = req.body;
-    
-    // 2. Pass all the new fields into the User blueprint
-    const newUser = new User({ 
-        email, 
-        username, 
-        firstName, 
-        lastName, 
-        contactNumber, 
-        bio, 
-        role 
-    });
-    
-    // 3. Register the user with Passport
-    const registeredUser = await User.register(newUser, password);
-    console.log(registeredUser);
-    
-    // 4. Log them in automatically
-    req.login(registeredUser, (err) => {
-        if(err) {
-            return next(err);
+module.exports.signup = async (req, res) => {
+    try {
+        // NOTE: Make sure your HTML form inputs are named exactly "username" and "email"
+        // If they are named something like "user[username]", this extraction will fail!
+        let { username, email, password, firstName, lastName } = req.body;
+
+        // 1. EXACT USERNAME CHECK (Stops here if taken)
+        const existingUsername = await User.findOne({ username: username });
+        if (existingUsername) {
+            req.flash("error", "That username is already taken. Please choose another.");
+            // The 'return' keyword instantly stops the function. No OTP will be sent.
+            return res.redirect("/signup"); 
         }
-        req.flash("success", "Welcome to StayScape!");
-        res.redirect("/listings");
-    });
-  } catch(e) {
-    req.flash("error", e.message);
-    res.redirect("/signup");
-  }
-}
+
+        // 2. EXACT EMAIL CHECK (Stops here if taken)
+        const existingEmail = await User.findOne({ email: email });
+        if (existingEmail) {
+            req.flash("error", "An account with that email already exists.");
+            // Stops the function. No OTP will be sent.
+            return res.redirect("/signup"); 
+        }
+
+        // ==========================================
+        // If the code reaches this line, it means BOTH the username 
+        // and email are 100% unique and safe to use.
+        // ==========================================
+
+        // 3. Clean up any old abandoned OTPs for this email
+        await OTP.deleteMany({ email: email });
+
+        // 4. Generate the new code
+        const generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+
+        const newOTP = new OTP({
+            email: email,
+            otpCode: generatedOTP
+        });
+        await newOTP.save();
+
+        // 5. Store in the holding pen
+        req.session.pendingUser = { username, email, password, firstName, lastName };
+        
+        // 6. Send the email
+        await emailUtil.sendOTP(email, generatedOTP);
+
+        // 7. Finally, redirect to the verify screen
+        req.flash("success", "OTP sent! Please check your email.");
+        res.redirect("/verify-otp");
+
+    } catch (e) {
+        console.error("Signup Error:", e);
+        req.flash("error", e.message || "An error occurred during sign up.");
+        res.redirect("/signup");
+    }
+};
 
 module.exports.renderLoginForm=(req,res)=>{
     res.render("users/login.ejs");
@@ -135,5 +159,55 @@ module.exports.toggleLike = async (req, res) => {
         user.wishlist.push(id);
         await user.save();
         res.json({ liked: true });
+    }
+};
+// 🎯 KEY FOCUS 1: The Final Merge (Verification Logic)
+module.exports.verifyOTP = async (req, res, next) => {
+    try {
+        const { otp } = req.body;
+        const pendingUser = req.session.pendingUser;
+
+        if (!pendingUser) {
+            req.flash("error", "Session expired or already processing. Please sign up again.");
+            return res.redirect("/signup");
+        }
+
+        const validOTP = await OTP.findOne({ email: pendingUser.email });
+
+        if (!validOTP || validOTP.otpCode !== otp.trim()) {
+            req.flash("error", "Invalid or expired OTP. Please try again.");
+            return res.redirect("/verify-otp");
+        }
+
+        // 🎯 KEY FOCUS: The Concurrency / Double-Click Fix!
+        // We MUST delete the session immediately BEFORE we try to register the user.
+        // If the user double-clicks the verify button, the second click will fail 
+        // the `!pendingUser` check at the top, preventing the Passport crash.
+        delete req.session.pendingUser;
+        
+        // We also delete the OTP right now to lock the door behind them
+        await OTP.deleteOne({ email: pendingUser.email });
+
+        // Ensure we pass ALL fields (including firstName and lastName) to the database
+        const newUser = new User({ 
+            email: pendingUser.email, 
+            username: pendingUser.username,
+            firstName: pendingUser.firstName,
+            lastName: pendingUser.lastName
+        });
+
+        // Register the user
+        const registeredUser = await User.register(newUser, pendingUser.password);
+
+        req.login(registeredUser, (err) => {
+            if (err) return next(err);
+            req.flash("success", "Welcome to the Marketplace! Account verified.");
+            res.redirect("/listings");
+        });
+
+    } catch (e) {
+        // If anything fails here, their session is already cleared, failing fast and securely.
+        req.flash("error", e.message);
+        res.redirect("/signup");
     }
 };

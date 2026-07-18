@@ -1,0 +1,105 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="row mt-5 mb-5">
+    <div class="col-md-6 offset-md-3 col-lg-4 offset-lg-4">
+        <div class="card shadow border-0 rounded-4 p-4 text-center">
+            
+            <div class="mb-4">
+                <i class="fa-solid fa-envelope-open-text fs-1 text-danger mb-3"></i>
+                <h3 class="fw-bold">OTP Verification</h3>
+                <p class="text-muted mb-0">We have sent a 6-digit code to</p>
+                <div class="d-flex justify-content-center align-items-center mt-1">
+                    <strong class="text-dark"><%= email %></strong>
+                    <!-- The Edit button takes them back to signup to fix their email -->
+                    <a href="/signup" class="text-danger small fw-bold text-decoration-none ms-2">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit
+                    </a>
+                </div>
+            </div>
+            
+            <form action="/verify-otp" method="POST" id="otpForm">
+                <!-- Hidden input that actually gets sent to the server -->
+                <input type="hidden" name="otp" id="finalOtpInput">
+                
+                <!-- The 6 visual square boxes -->
+                <div class="d-flex justify-content-center gap-2 mb-4 otp-container">
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required autofocus>
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required>
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required>
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required>
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required>
+                    <input type="text" class="form-control otp-box text-center fw-bold fs-4" maxlength="1" required>
+                </div>
+                
+                <button type="submit" class="btn btn-danger w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">
+                    Verify and Proceed
+                </button>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Styling to make the inputs perfect squares */
+    .otp-box {
+        width: 50px;
+        height: 55px;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        transition: border-color 0.2s;
+    }
+    .otp-box:focus {
+        border-color: #dc3545; /* Red outline on focus */
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+    /* Hide the up/down arrows if user types on a number pad */
+    .otp-box::-webkit-outer-spin-button,
+    .otp-box::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const inputs = document.querySelectorAll('.otp-box');
+        const form = document.getElementById('otpForm');
+        const finalInput = document.getElementById('finalOtpInput');
+
+        // Auto-advance cursor logic
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                // If they typed a number and it's not the last box, jump to the next box
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+            });
+
+            // Handle backspace gracefully
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    // If box is empty and they hit backspace, jump to previous box
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        // When the form submits, stitch the 6 boxes into one string
+        form.addEventListener('submit', (e) => {
+            let otpString = "";
+            inputs.forEach(input => {
+                otpString += input.value.trim();
+            });
+            
+            // Put the combined string into the hidden input so the backend can read it
+            finalInput.value = otpString;
+
+            // Optional: If they didn't fill all 6, stop the submission
+            if (otpString.length !== 6) {
+                e.preventDefault();
+                alert("Please enter the complete 6-digit OTP.");
+            }
+        });
+    });
+</script>
