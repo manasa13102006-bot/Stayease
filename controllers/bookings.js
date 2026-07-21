@@ -72,11 +72,12 @@ module.exports.createBooking = async (req, res) => {
     try {
         session.startTransaction();
 
-        // 🎯 FIX 2: Acquire a document write-lock on the Listing inside the transaction
-        // This forces concurrent requests for the same listing to queue sequentially.
-        const listing = await Listing.findByIdAndUpdate(
-            id,
-            { $set: { lastBookingAttemptAt: new Date() } },
+        // 🎯 THE BULLETPROOF LOCK
+        // By incrementing the native __v field, we force MongoDB to lock this Listing document.
+        // If User B arrives 1 millisecond later, their transaction is paused until User A finishes.
+        const listing = await Listing.findOneAndUpdate(
+            { _id: id },
+            { $inc: { __v: 1 } }, 
             { new: true, session }
         );
 
@@ -93,16 +94,18 @@ module.exports.createBooking = async (req, res) => {
         
         const totalPrice = nights * listing.price;
 
-        // 🎯 FIX 1: Corrected field name to 'bookingStatus'
+        // Because of the lock above, by the time User B's transaction is unpaused, 
+        // this query will now accurately detect User A's newly saved pending booking.
         const overlappingBookings = await Booking.find({
             listing: id,
-            bookingStatus: { $in: ['pending', 'confirmed'] }, 
+            bookingStatus: { $in: ['pending', 'confirmed', 'paid'] }, 
             checkIn: { $lt: requestedCheckOut }, 
             checkOut: { $gt: requestedCheckIn }
-        }).session(session);
+        }).session(session); 
 
         if (overlappingBookings.length > 0) {
-            throw new Error("These dates have just been booked by someone else. Please select new dates.");
+            // Throwing this error automatically aborts User B's transaction
+            throw new Error("Just missed it! These dates were booked seconds ago by someone else.");
         }
 
         const newBooking = new Booking({
@@ -120,6 +123,7 @@ module.exports.createBooking = async (req, res) => {
         await session.commitTransaction();
         session.endSession();
 
+        // Start Stripe Checkout (Database operations are completely finished)
         const stripeSession = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
             line_items: [
@@ -151,7 +155,14 @@ module.exports.createBooking = async (req, res) => {
         session.endSession();
         
         console.error("Booking Transaction Failed:", e);
-        req.flash("error", e.message || "Something went wrong while booking.");
+        
+        // Catch MongoDB WriteConflict errors specifically
+        if (e.hasErrorLabel && e.hasErrorLabel('TransientTransactionError')) {
+            req.flash("error", "High traffic detected for this listing. Please try selecting dates again.");
+        } else {
+            req.flash("error", e.message || "Something went wrong while booking.");
+        }
+        
         res.redirect(`/listings/${id}`);
     }
 };
