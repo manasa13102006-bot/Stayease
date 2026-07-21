@@ -59,9 +59,9 @@ const sessionOption = {
       httpOnly: true,
     },
 };
-// app.get("/",(req,res)=>{
-//     res.send("I AM THE ROOT");
-// });
+app.get("/",(req,res)=>{
+    res.redirect("/listings");
+});
 app.use(session(sessionOption));
 app.use(flash());
 app.use(passport.initialize());
