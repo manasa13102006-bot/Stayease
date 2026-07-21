@@ -1,9 +1,10 @@
+
+require("dotenv").config({ path: "../.env" });
 const mongoose = require("mongoose");
 const initData = require("./data.js");
 const Listing = require("../models/listing.js");
 
-const MONGO_URL = "mongodb://127.0.0.1:27017/WanderLust";
-
+const dbUrl = process.env.ATLASDB_URL;
 main()
   .then(() => {
     console.log("connected to database");
@@ -13,7 +14,7 @@ main()
   });
 
 async function main() {
-  await mongoose.connect(MONGO_URL);
+  await mongoose.connect(dbUrl);
 }
 
 const coordinates = {
@@ -46,13 +47,29 @@ const coordinates = {
   "Maldives": { lat: 3.2028, lng: 73.2207 },
 };
 
+const categories = [
+  "Trending",
+  "Rooms",
+  "Iconic Cities",
+  "Mountains",
+  "Castles",
+  "Amazing Pools",
+  "Camping",
+  "Farms",
+  "Arctic",
+];
+
+const getRandomCategory = () => {
+  return categories[Math.floor(Math.random() * categories.length)];
+};
 const initdb = async () => {
   await Listing.deleteMany({});
 
   initData.data = initData.data.map((obj) => ({
     ...obj,
-    owner: "6a2d0fe65b2cde706330cb0c",
+    owner: "6a5d0942d1a4e90d4aebd3bb",
     geometry: coordinates[obj.location],
+    category: getRandomCategory(),
   }));
 
   await Listing.insertMany(initData.data);

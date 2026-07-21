@@ -14,6 +14,7 @@
     "-": "^0.0.1",
     "cloudinary": "^1.41.3",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^3.2.0",
     "dotenv": "^17.4.2",
     "ejs": "^5.0.2",
     "ejs-mate": "^4.0.0",
@@ -30,6 +31,7 @@
     "override": "^0.0.1",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
-    "passport-local-mongoose": "^9.1.0"
+    "passport-local-mongoose": "^9.1.0",
+    "stripe": "^22.3.2"
   }
 }

@@ -1,0 +1,61 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="row mt-5 mb-5">
+    <div class="col-8 offset-2">
+        <h2 class="fw-bold mb-4">Confirm Your Booking</h2>
+        
+        <div class="row">
+            <!-- Left Side: Form & Summary -->
+            <div class="col-md-7">
+                <div class="card shadow-sm border-0 rounded-4 p-4 mb-4">
+                    <h4 class="fw-bold mb-4">Trip Details</h4>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <p class="fw-bold mb-0">Check-in</p>
+                            <p class="text-muted"><%= new Date(checkIn).toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %></p>
+                        </div>
+                        <div class="text-end">
+                            <p class="fw-bold mb-0">Check-out</p>
+                            <p class="text-muted"><%= new Date(checkOut).toLocaleDateString('en-IN', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }) %></p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h4 class="fw-bold mt-4 mb-3">Price Breakdown</h4>
+                    <div class="d-flex justify-content-between mb-2">
+                        <p class="mb-0">&#8377;<%= listing.price.toLocaleString("en-IN") %> x <%= nights %> nights</p>
+                        <p class="mb-0">&#8377;<%= totalPrice.toLocaleString("en-IN") %></p>
+                    </div>
+                    <!-- You can add taxes/fees here later if you want! -->
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <p class="mb-0">Total (INR)</p>
+                        <p class="mb-0">&#8377;<%= totalPrice.toLocaleString("en-IN") %></p>
+                    </div>
+                </div>
+
+                <!-- 🎯 KEY FOCUS 3: The Final Form -->
+                <!-- This hidden form submits the dates to our ACID Transaction Controller -->
+                <form action="/bookings/<%= listing._id %>" method="POST">
+                    <input type="hidden" name="checkIn" value="<%= checkIn %>">
+                    <input type="hidden" name="checkOut" value="<%= checkOut %>">
+                    
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm">
+                        Confirm and Pay <i class="fa-solid fa-lock ms-2"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Right Side: Property Mini-Card -->
+            <div class="col-md-5">
+                <div class="card shadow-sm border-0 rounded-4 p-3">
+                    <img src="<%= listing.image.url %>" class="img-fluid rounded-3 mb-3" style="height: 200px; object-fit: cover;">
+                    <h5 class="fw-bold"><%= listing.title %></h5>
+                    <p class="text-muted small mb-0"><i class="fa-solid fa-location-dot"></i> <%= listing.location %>, <%= listing.country %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,10 +1,13 @@
 const express = require("express");
-const router = express.Router({ mergeParams: true }); 
-const wrapAsync = require("../utils/wrapAsync.js");
-const { isLoggedIn } = require("../middleware.js");
-const bookingController = require("../controllers/bookings.js");
+const router = express.Router({ mergeParams: true });
+const bookingController = require("../controllers/bookings");
+const wrapAsync = require("../utils/wrapAsync");
+const { isLoggedIn } = require("../middleware");
 
-// POST route to submit a booking
-router.post("/", isLoggedIn, wrapAsync(bookingController.createBooking));
+// Step 1: Receives dates from the Listing page, calculates math, shows Review Page
+router.post("/:id/review", isLoggedIn, wrapAsync(bookingController.renderReviewPage));
 
+// Step 2: Receives confirmation from Review Page, executes ACID Transaction, goes to Stripe
+router.post("/:id", isLoggedIn, wrapAsync(bookingController.createBooking));
+router.get("/:id/success", isLoggedIn, wrapAsync(bookingController.paymentSuccess));
 module.exports = router;
