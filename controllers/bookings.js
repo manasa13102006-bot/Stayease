@@ -2,14 +2,11 @@ const mongoose = require("mongoose");
 const Booking = require("../models/booking");
 const Listing = require("../models/listing");
 const { sendBookingEmails } = require("../utils/email");
-// Initialize Stripe using the secret key from your environment
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-// 🎯 KEY FOCUS 1: The Intermediate Review Controller
+
 module.exports.renderReviewPage = async (req, res) => {
     try {
         const { id } = req.params;
-        
-        // 🎯 FIX 2: Look inside req.body.booking (Because of your HTML form names)
         const { checkIn, checkOut } = req.body.booking;
 
         if (!checkIn || !checkOut) {
@@ -20,7 +17,6 @@ module.exports.renderReviewPage = async (req, res) => {
         const requestedCheckIn = new Date(checkIn);
         const requestedCheckOut = new Date(checkOut);
         
-        // Ensure check-in is in the future, and checkout is after check-in
         if (requestedCheckIn < new Date().setHours(0,0,0,0) || requestedCheckOut <= requestedCheckIn) {
             req.flash("error", "Invalid dates selected. Please try again.");
             return res.redirect(`/listings/${id}`);
@@ -28,16 +24,14 @@ module.exports.renderReviewPage = async (req, res) => {
 
         const listing = await Listing.findById(id);
         
-        // Calculate the math for the user to review
         const timeDifference = requestedCheckOut.getTime() - requestedCheckIn.getTime();
         const nights = Math.ceil(timeDifference / (1000 * 3600 * 24));
         const totalPrice = nights * listing.price;
 
-        // 🎯 KEY FOCUS 2: Pre-flight overlap check (Fail Fast)
-        // If it's already booked, don't even let them see the review page
+        // 🎯 FIX 1: Corrected field name from 'status' to 'bookingStatus'
         const overlappingBookings = await Booking.find({
             listing: id,
-            status: { $in: ['pending', 'confirmed', 'paid'] },
+            bookingStatus: { $in: ['pending', 'confirmed'] },
             checkIn: { $lt: requestedCheckOut },
             checkOut: { $gt: requestedCheckIn }
         });
@@ -47,7 +41,6 @@ module.exports.renderReviewPage = async (req, res) => {
             return res.redirect(`/listings/${id}`);
         }
 
-        // Send all this calculated data to the frontend intermediate page
         res.render("bookings/review.ejs", { 
             listing, 
             checkIn, 
@@ -61,6 +54,7 @@ module.exports.renderReviewPage = async (req, res) => {
         res.redirect(`/listings/${req.params.id}`);
     }
 };
+
 module.exports.createBooking = async (req, res) => {
     const { id } = req.params; 
     const { checkIn, checkOut } = req.body; 
@@ -73,15 +67,19 @@ module.exports.createBooking = async (req, res) => {
     const requestedCheckIn = new Date(checkIn);
     const requestedCheckOut = new Date(checkOut);
 
-    // 1. Start the MongoDB Session (The isolated bubble)
     const session = await mongoose.startSession();
 
     try {
-        // 2. Start the Transaction
         session.startTransaction();
 
-        // Pass { session } to run this query INSIDE the transaction bubble
-        const listing = await Listing.findById(id).session(session);
+        // 🎯 FIX 2: Acquire a document write-lock on the Listing inside the transaction
+        // This forces concurrent requests for the same listing to queue sequentially.
+        const listing = await Listing.findByIdAndUpdate(
+            id,
+            { $set: { lastBookingAttemptAt: new Date() } },
+            { new: true, session }
+        );
+
         if (!listing) {
             throw new Error("Listing not found.");
         }
@@ -95,19 +93,18 @@ module.exports.createBooking = async (req, res) => {
         
         const totalPrice = nights * listing.price;
 
-        // 3. The Concurrency Overlap Check (Strict lock)
+        // 🎯 FIX 1: Corrected field name to 'bookingStatus'
         const overlappingBookings = await Booking.find({
             listing: id,
-            status: { $in: ['pending', 'confirmed', 'paid'] }, 
+            bookingStatus: { $in: ['pending', 'confirmed'] }, 
             checkIn: { $lt: requestedCheckOut }, 
             checkOut: { $gt: requestedCheckIn }
-        }).session(session); // MUST run inside the transaction
+        }).session(session);
 
         if (overlappingBookings.length > 0) {
             throw new Error("These dates have just been booked by someone else. Please select new dates.");
         }
 
-        // 4. Create the Pending Booking
         const newBooking = new Booking({
             listing: id,
             guest: req.user._id,
@@ -118,17 +115,10 @@ module.exports.createBooking = async (req, res) => {
             paymentStatus: 'pending'
         });
 
-        // 5. Save the booking inside the transaction
         await newBooking.save({ session });
 
-        // 6. Commit the Transaction (Make it permanent!)
         await session.commitTransaction();
         session.endSession();
-
-        // ==========================================
-        // DATABASE LOCK RELEASED.
-        // Now it is safe to talk to the Stripe API.
-        // ==========================================
 
         const stripeSession = await stripe.checkout.sessions.create({
             payment_method_types: ["card"],
@@ -151,14 +141,12 @@ module.exports.createBooking = async (req, res) => {
             client_reference_id: newBooking._id.toString(), 
         });
 
-        // Attach Stripe ID to our database record (Outside the transaction)
         newBooking.stripeSessionId = stripeSession.id;
         await newBooking.save();
 
         res.redirect(303, stripeSession.url);
 
     } catch (e) {
-        // 7. If ANYTHING goes wrong, instantly pop the bubble and revert all changes
         await session.abortTransaction();
         session.endSession();
         
@@ -167,7 +155,7 @@ module.exports.createBooking = async (req, res) => {
         res.redirect(`/listings/${id}`);
     }
 };
-// 🎯 KEY FOCUS: The Cryptographically Secure Webhook Receiver
+
 module.exports.stripeWebhook = async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -186,7 +174,6 @@ module.exports.stripeWebhook = async (req, res) => {
         const bookingId = session.client_reference_id; 
 
         try {
-            // 🎯 KEY FOCUS: Added { new: true } and the populate() chains
             const confirmedBooking = await Booking.findByIdAndUpdate(bookingId, {
                 bookingStatus: 'confirmed',
                 paymentStatus: 'paid',
@@ -194,13 +181,12 @@ module.exports.stripeWebhook = async (req, res) => {
             }, { new: true })
             .populate({
                 path: "listing",
-                populate: { path: "owner" } // Fetches host's email
+                populate: { path: "owner" }
             })
-            .populate("guest"); // Fetches guest's email
+            .populate("guest");
 
             console.log(`[SUCCESS] Booking ${bookingId} confirmed via Webhook!`);
 
-            // 🎯 KEY FOCUS: Fire the emails!
             if (confirmedBooking) {
                 sendBookingEmails(confirmedBooking);
             }
@@ -212,12 +198,10 @@ module.exports.stripeWebhook = async (req, res) => {
 
     res.status(200).send();
 };
-// 🎯 KEY FOCUS: The Success Page Controller
+
 module.exports.paymentSuccess = async (req, res) => {
     try {
-        const { id } = req.params; // This is the Booking ID from the URL
-        
-        // Find the booking and populate the listing details so we can show the title/image
+        const { id } = req.params;
         const booking = await Booking.findById(id).populate("listing");
 
         if (!booking) {
